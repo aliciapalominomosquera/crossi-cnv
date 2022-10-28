@@ -40,7 +40,7 @@ done <ControlList.txt
 
 
 # Loop over all *.cns and *.cnr in the results dir of tumors for making the calls
-#for i in tumor-cnn/barcode-deduped/*.antitargetcoverage.cnn
+#for i in tumor500-cnn/samtools-deduped-bam/*.antitargetcoverage.cnn
 #do
   # Trim the string to get a root name of the sample
   SAMPLE="$(echo $i | sed 's/.antitargetcoverage.cnn//g')"
