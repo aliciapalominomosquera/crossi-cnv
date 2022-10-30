@@ -6,6 +6,7 @@ CNA analysis in HL patietns (Cedric)
 
 # CNVkit
 To run the CNVkit pipeline be sure to activate previously the cnvkit conda enviroment
+
 `conda activate cnvkit`
 `bash cnvkit-cedric.sh`
 
