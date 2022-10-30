@@ -1,27 +1,35 @@
-#cnvkit.py access hg19.fa -o access.hg19.bed
-#cnvkit.py autobin ./samtools-deduped-bam/*.bam -t baits500.bed -g access.hg19.bed
+# 1st step is to create the access.hg19.bed file. This commandcalculates the sequence-accessible coordinates in chromosomes from the given reference genome, output as a BED file
+cnvkit.py access hg19.fa -o access.hg19.bed
+# 2nd step is to create the bin size for the analyses (the dots). This command quickly estimates read counts or depths in a BAM file to estimate reasonable on- and off-target bin sizes.
+# Generates target and antitarget BED files, and prints a table of estimated average read depths and recommended bin sizes on standard output.
+cnvkit.py autobin ./samtools-deduped-bam/*.bam -t baits500.bed -g access.hg19.bed
+
+# 3rd step is to create the *.targetcoverage.cnn file and *.antitargetcoverage.cnn. First create a folder called 'tumor500-cnn' to save the cnn files. 
+# This command calculates coverage in the given regions from BAM read depths. By default, coverage is calculated via mean read depth from a pileup
+# Use baits selector with add500bp. Create a text file with the sample list ('SampleList.txt')
+
+while read p; do
+ SAMPLE="$(echo $p | sed 's/.cfDNA.sorted.samtools-deduped.sorted.bam//g')"  
+ echo "$SAMPLE"
+ cnvkit.py coverage $p baits500.target.bed -o tumor500-cnn/${SAMPLE}.targetcoverage.cnn
+ cnvkit.py coverage $p baits500.antitarget.bed -o tumor500-cnn/${SAMPLE}.antitargetcoverage.cnn
+done <SampleList.txt
+
+# Create the folder called 'control500-cnn' and use the same command but in the control samples. 
+# In our case the BLYM_v2_AUG2021 controls. Create a text file with the sample list ('ControlList.txt') 
+
+while read p; do
+ SAMPLE="$(echo $p | sed 's/-c1_cfDNA.sorted.samtools-deduped.sorted.bam//g')"
+ echo "$SAMPLE"
+ cnvkit.py coverage $p baits500.target.bed -o control500-cnn/${SAMPLE}.targetcoverage.cnn
+ cnvkit.py coverage $p baits500.antitarget.bed -o control500-cnn/${SAMPLE}.antitargetcoverage.cnn
+done <ControlList.txt
 
 
-# Using baits selector with add500bp
-#while read p; do
-# SAMPLE="$(echo $p | sed 's/.cfDNA.sorted.samtools-deduped.sorted.bam//g')"  
-# echo "$SAMPLE"
-# cnvkit.py coverage $p baits500.target.bed -o tumor500-cnn/${SAMPLE}.targetcoverage.cnn
-# cnvkit.py coverage $p baits500.antitarget.bed -o tumor500-cnn/${SAMPLE}.antitargetcoverage.cnn
-#done <SampleList.txt
+# Create a normal reference with all normal samples '.cnn' files
+cnvkit.py reference control500-cnn/controls-BLYMv2/*.{,anti}targetcoverage.cnn --fasta hg19.fa -o my_reference500.cnn
 
-#while read p; do
-# SAMPLE="$(echo $p | sed 's/-c1_cfDNA.sorted.samtools-deduped.sorted.bam//g')"
-# echo "$SAMPLE"
-# cnvkit.py coverage $p baits500.target.bed -o control500-cnn/${SAMPLE}.targetcoverage.cnn
-# cnvkit.py coverage $p baits500.antitarget.bed -o control500-cnn/${SAMPLE}.antitargetcoverage.cnn
-#done <ControlList.txt
-
-
-# With all normal samples...
-#cnvkit.py reference control500-cnn/controls-BLYMv2/*.{,anti}targetcoverage.cnn --fasta hg19.fa -o my_reference500.cnn
-
-# For each tumor sample...
+# Create the cnr/cns/graphs for each tumor sample '.cnn' files
 for i in tumor500-cnn/samtools-deduped-bam/*.antitargetcoverage.cnn
 do
 #   Trim the string to get a root name of the sample
@@ -50,13 +58,6 @@ do
     echo "Call on cn-segment tumor sample: $SAMPLE"
     cnvkit.py call ${SAMPLE}.cns
     # Move the call file to the result directory
-    mv *.call.cns ${SAMPLE}.call.cns
-  fi
-  # For each tumor sample cn-region...
-  if [ ! -f ${SAMPLE}.call.cnr ]; then
-    echo "Call on cn-region tumor sample: $SAMPLE"
-    cnvkit.py call ${SAMPLE}.cnr
-    # Move the call file to the result directory
-    mv *.call.cnr ${SAMPLE}.call.cnr
+    mv *.call.cns tumor500-cnn/samtools-deduped-bam/
   fi
 done
