@@ -11,6 +11,23 @@ To run the CNVkit pipeline be sure to activate previously the cnvkit conda envir
 
 `bash cnvkit-cedric.sh`
 
+# ichorCNA
+To run ichorCNA you need to activate different enviroments. 
+
+1. First step is to create the off-target '.bam' and '.bai' files from the tumor samples and controls. Base enviroment.
+
+`ichorcna1-offtarget.sh`
+
+`ichorcna2-offtarget-controls.sh`
+
+2. ACTIVATE hmmcopy enviroment. Create the '.wig' files from the 'off-target.bam' files of tumor and controls samples.
+
+`ichorcna3-wig.sh`
+
+`ichorcna4-wig-controls.sh`
+
+3. ACTIVATE the cnvkit enviroment
+
 # Common use of git repo
 One-time step of cloning the repo to your directory
 `git clone git@github.com:aliciapalominomosquera/crossi-cnv.git`
